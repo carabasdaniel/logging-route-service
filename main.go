@@ -37,7 +37,7 @@ func main() {
 	roundTripper := NewLoggingRoundTripper(skipSslValidation)
 	proxy := NewProxy(roundTripper, skipSslValidation)
 
-	log.Fatal(http.ListenAndServe(":"+port, proxy))
+	log.Fatal(http.ListenAndServeTLS(":"+port, "server.crt", "server.key", proxy))
 }
 
 func NewProxy(transport http.RoundTripper, skipSslValidation bool) http.Handler {
