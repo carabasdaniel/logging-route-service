@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -21,6 +22,8 @@ const (
 
 func main() {
 	var (
+		key               string
+		cert              string
 		port              string
 		skipSslValidation bool
 		err               error
@@ -37,6 +40,22 @@ func main() {
 	roundTripper := NewLoggingRoundTripper(skipSslValidation)
 	proxy := NewProxy(roundTripper, skipSslValidation)
 
+	if cert = os.Getenv("CERTIFICATE"); len(cert) == 0 {
+		log.Fatal("TLS Certificate needs to be provided as environment variable (CERTIFICATE)")
+	}
+
+	err = ioutil.WriteFile("server.crt", []byte(strings.Replace(cert, "\\n", "\n", -1)), 0600)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if key = os.Getenv("KEY"); len(key) == 0 {
+		log.Fatal("TLS Key needs to be provided as environment variable (KEY)")
+	}
+
+	err = ioutil.WriteFile("server.key", []byte(strings.Replace(key, "\\n", "\n", -1)), 0600)
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.Fatal(http.ListenAndServeTLS(":"+port, "server.crt", "server.key", proxy))
 }
 
